@@ -80,7 +80,12 @@ class BasePlugin(object):
 
     def get_secrets(self):
         # type: () -> Dict[str, Secret]
-        """Returns a dict of all secrets this plugin manages, keyed by the secret's name.
+        """Returns a dict of all secrets this plugin manages, keyed by the secret's name. The
+        secrets must not contain any information that should not be exposed to the user, such
+        as the value of the secret itself. If the plugin uses 1 or more fields of the Secret
+        type (or a subclass) for storing the secret, those fields must be replaced with
+        nonsensitive information before this method returns; even if the fields are not part
+        of the standard Secret interface.
 
         Throws:
             Any exceptions should be a subclass of SecretError
