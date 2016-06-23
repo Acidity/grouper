@@ -8,6 +8,7 @@ from annex import Annex
 
 
 Plugins = []
+Secret_Forms = []
 
 
 class PluginsAlreadyLoaded(Exception):
@@ -20,8 +21,10 @@ def load_plugins(plugin_dir, service_name):
     if Plugins:
         raise PluginsAlreadyLoaded("Plugins already loaded; can't load twice!")
     Plugins = Annex(BasePlugin, [plugin_dir], raise_exceptions=True)
+    global Secret_Forms
     for plugin in Plugins:
         plugin.configure(service_name)
+        Secret_Forms += plugin.get_secret_forms()
 
 
 def get_plugins():
@@ -51,6 +54,41 @@ class BasePlugin(object):
         (grouper-api or grouper-fe).
         """
         pass
+
+    def get_secret_forms(self):
+        # type: () -> List[str]
+        """Called when the plugin is instantiated to determine what secret
+        forms the plugins supports (if any).
+
+        Returns:
+            a list of the forms that this plugin supports (if any). Empty list otherwise
+        """
+        return []
+
+    def commit_secret(self, secret):
+        # type: (Secret) -> None
+        """Passes a Secret object to the plugin for processing, saving, distribution, and all of
+        the other things secret management systems do when creating or updating a secret.
+
+        Throws:
+            Any exceptions should be a subclass of SecretError
+
+        Returns:
+            Nothing
+        """
+        pass
+
+    def get_secrets(self):
+        # type: () -> Dict[str, Secret]
+        """Returns a dict of all secrets this plugin manages, keyed by the secret's name.
+
+        Throws:
+            Any exceptions should be a subclass of SecretError
+
+        Returns:
+            a dictionary that contains all secrets that this plugin manages, or an empty dictionary
+        """
+        return {}
 
     def log_exception(self, request, status, exception, stack):
         """
