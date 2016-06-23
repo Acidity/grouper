@@ -321,7 +321,6 @@ class PublicKeyAddTagForm(Form):
     ], choices=[["", "(select one)"]], default="")
 
 
-<<<<<<< HEAD
 class UserPasswordForm(Form):
     name = StringField("Password name", [
         validators.DataRequired(),
@@ -343,7 +342,7 @@ class ServiceAccountCreateForm(Form):
     default="canask")
 
 
-class SecretCreateForm(Form):
+class SecretForm(Form):
     name = StringField("Name", [
         validators.Length(min=3, max=32),
         validators.DataRequired(),

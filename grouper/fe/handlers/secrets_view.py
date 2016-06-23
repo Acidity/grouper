@@ -1,4 +1,4 @@
-from grouper.fe.forms import SecretCreateForm
+from grouper.fe.forms import SecretForm
 from grouper.fe.util import Alert, GrouperHandler, paginate_results
 from grouper.group import get_groups_by_user
 from grouper.model_soup import Group
@@ -6,29 +6,47 @@ from grouper.plugin import Secret_Forms
 from grouper.secret import Secret, SecretError, SecretRiskLevel
 
 
+def get_secrets_form(session, user, args={}):
+    form = SecretForm(args)
+    form.form.choices = [["", "(select one)"]]
+    for f in Secret_Forms:
+        form.form.choices.append([f, f])
+
+    form.owner.choices = [[-1, "(select one)"]]
+    for group, group_edge in get_groups_by_user(session, user):
+        form.owner.choices.append([int(group.id), group.name])
+
+    form.risk_level.choices = [[-1, "(select one)"]]
+    for level in SecretRiskLevel:
+        form.risk_level.choices.append([level.value, level.name])
+
+    return form
+
+
+def secret_from_form(session, form, new):
+    return Secret(
+        name=form.data["name"],
+        form=form.data["form"],
+        form_attr=form.data["form_attr"],
+        distribution=form.data["distribution"].split("\r\n"),
+        owner=Group.get(session, pk=form.data["owner"]),
+        rotate=form.data["rotate"],
+        history=form.data["history"],
+        notes=form.data["notes"],
+        risk_level=form.data["risk_level"],
+        risk_info=form.data["risk_info"],
+        uses=form.data["uses"],
+        new=new
+    )
+
+
 class SecretsView(GrouperHandler):
-
-    def get_form(self):
-        form = SecretCreateForm(self.request.arguments)
-        form.form.choices = [["", "(select one)"]]
-        for f in Secret_Forms:
-            form.form.choices.append([f, f])
-
-        form.owner.choices = [[-1, "(select one)"]]
-        for group, group_edge in get_groups_by_user(self.session, self.current_user):
-            form.owner.choices.append([int(group.id), group.name])
-
-        form.risk_level.choices = [[-1, "(select one)"]]
-        for level in SecretRiskLevel:
-            form.risk_level.choices.append([level.value, level.name])
-
-        return form
 
     def get(self):
         self.handle_refresh()
         total, offset, limit, secrets = paginate_results(self, Secret.get_all_secrets().values())
 
-        form = self.get_form()
+        form = get_secrets_form(self.session, self.current_user, self.request.arguments)
 
         self.render(
             "secrets.html", secrets=secrets, form=form,
@@ -36,7 +54,7 @@ class SecretsView(GrouperHandler):
         )
 
     def post(self):
-        form = self.get_form()
+        form = get_secrets_form(self.session, self.current_user, self.request.arguments)
         all_secrets = Secret.get_all_secrets()
         total, offset, limit, secrets = paginate_results(self, all_secrets.values())
 
@@ -63,20 +81,7 @@ class SecretsView(GrouperHandler):
                 total=total, alerts=[Alert("danger", e.message)]
             )
 
-        secret = Secret(
-            name=form.data["name"],
-            form=form.data["form"],
-            form_attr=form.data["form_attr"],
-            distribution=form.data["distribution"],
-            owner=Group.get(self.session, pk=form.data["owner"]),
-            rotate=form.data["rotate"],
-            history=form.data["history"],
-            notes=form.data["notes"],
-            risk_level=form.data["risk_level"],
-            risk_info=form.data["risk_info"],
-            uses=form.data["uses"],
-            new=True
-        )
+        secret = secret_from_form(self.session, form, new=True)
 
         try:
             secret.commit()
