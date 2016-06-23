@@ -247,3 +247,23 @@ def ensure_audit_security(perm_arg):
         return wraps(f)(_decorator)
 
     return _wrapper
+
+
+def paginate_results(handler, results):
+    # type: (GrouperHandler, List[T]) -> List[T]
+    """Limits the number of results to display for handlers/templates the paginate lists
+
+    Args:
+        handler: the GrouperHandler for the request being paginated
+        results: the entire list of possible results
+
+    Returns:
+        the offset and limited results to display for this page
+    """
+    total = len(results)
+    offset = int(handler.get_argument("offset", 0))
+    limit = int(handler.get_argument("limit", 100))
+    if limit > 9000:
+        limit = 9000
+
+    return total, offset, limit, results[offset:offset + limit]

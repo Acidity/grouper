@@ -1,6 +1,6 @@
 from enum import Enum
 
-from grouper.plugin import Plugins, Secret_Forms
+from grouper.plugin import get_plugins, Secret_Forms
 
 
 class SecretError(Exception):
@@ -28,10 +28,21 @@ class Secret(object):
     implements this entire interface (supersets are of course allowed).
     """
 
-    def __init__(
-            self, name, form, form_attr, distribution, owner, rotate, history, notes, risk_level,
-            risk_info, uses, new=False):
-        # type: (str, str, List[str], Group, timedelta, int, str, int, str, str, boolean) -> Secret
+    def __init__(self,
+                 name,            # type: str
+                 form,            # type: str
+                 form_attr,       # type: str
+                 distribution,    # type: List[str]
+                 owner,           # type: Group
+                 rotate,          # type: timedelta
+                 history,         # type: int
+                 notes,           # type: str
+                 risk_level,      # type: int
+                 risk_info,       # type: str
+                 uses,            # type: str
+                 new=False        # type: boolean
+                 ):
+        # type: (...) -> Secret
         """
         Creates a new secret object obviously.
 
@@ -72,5 +83,13 @@ class Secret(object):
         Throws:
             SecretError (or subclasses) if something doesn't work
         """
-        for plugin in Plugins:
+        for plugin in get_plugins():
+            print(plugin)
             plugin.commit_secret(self)
+
+    @staticmethod
+    def get_all_secrets():
+        ret = dict()
+        for plugin in get_plugins():
+            ret.update(plugin.get_secrets())
+        return ret

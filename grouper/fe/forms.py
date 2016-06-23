@@ -321,6 +321,7 @@ class PublicKeyAddTagForm(Form):
     ], choices=[["", "(select one)"]], default="")
 
 
+<<<<<<< HEAD
 class UserPasswordForm(Form):
     name = StringField("Password name", [
         validators.DataRequired(),
@@ -340,3 +341,35 @@ class ServiceAccountCreateForm(Form):
     description = TextAreaField("Description")
     canjoin = SelectField("Who Can Join?", choices=GROUP_CANJOIN_CHOICES,
     default="canask")
+
+
+class SecretCreateForm(Form):
+    name = StringField("Name", [
+        validators.Length(min=3, max=32),
+        validators.DataRequired(),
+        ValidateRegex(constants.NAME_VALIDATION),
+    ])
+    form = SelectField("Secret Type", [
+        validators.DataRequired(),
+    ], choices=[["", "(select one)"]], default="")
+    form_attr = StringField("Form Misc", [
+        validators.DataRequired(),
+    ])
+    distribution = TextAreaField("Distribution", [
+        validators.DataRequired(),
+    ])
+    owner = SelectField("Owner", [
+        validators.DataRequired(),
+    ], choices=[[-1, "(select one)"]], default=-1, coerce=int)
+    rotate = DaysTimeDeltaField("Default Expiration (Days)", [
+        validators.DataRequired()
+    ])
+    history = IntegerField("History", [
+        validators.DataRequired(),
+    ])
+    notes = TextAreaField("Notes")
+    risk_level = SelectField("Risk Level", [
+        validators.DataRequired(),
+    ], choices=[[-1, "(select one)"]], default=-1, coerce=int)
+    risk_info = TextAreaField("Risk Info")
+    uses = TextAreaField("Uses")
