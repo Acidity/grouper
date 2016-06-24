@@ -1,6 +1,6 @@
 from enum import Enum
 
-from grouper.plugin import get_plugins, Secret_Forms
+from grouper.plugin import get_plugins, get_secret_forms
 
 
 class SecretError(Exception):
@@ -60,7 +60,7 @@ class Secret(object):
             risk_info: Information about why this secret has that level
             uses: Information about where and how this secret is used.
         """
-        if form not in Secret_Forms:
+        if form not in get_secret_forms():
             raise InvalidSecretForm()
         self.name = name
         self.form = form

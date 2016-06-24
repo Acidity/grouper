@@ -33,6 +33,12 @@ def get_plugins():
     return list(Plugins)
 
 
+def get_secret_forms():
+    """Get a list of all acceptable forms for secrets."""
+    global Secret_Forms
+    return list(Secret_Forms)
+
+
 class BasePlugin(object):
     def user_created(self, user):
         """Called when a new user is created

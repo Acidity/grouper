@@ -2,14 +2,14 @@ from grouper.fe.forms import SecretForm
 from grouper.fe.util import Alert, GrouperHandler, paginate_results
 from grouper.group import get_groups_by_user
 from grouper.model_soup import Group
-from grouper.plugin import Secret_Forms
+from grouper.plugin import get_secret_forms
 from grouper.secret import Secret, SecretError, SecretRiskLevel
 
 
 def get_secrets_form(session, user, args={}):
     form = SecretForm(args)
     form.form.choices = [["", "(select one)"]]
-    for f in Secret_Forms:
+    for f in get_secret_forms():
         form.form.choices.append([f, f])
 
     form.owner.choices = [[-1, "(select one)"]]
