@@ -250,7 +250,7 @@ def ensure_audit_security(perm_arg):
 
 
 def paginate_results(handler, results):
-    # type: (GrouperHandler, List[T]) -> List[T]
+    # type: (GrouperHandler, List[T]) -> Tuple[int, int, int, List[T]]
     """Limits the number of results to display for handlers/templates the paginate lists
 
     Args:
@@ -258,7 +258,8 @@ def paginate_results(handler, results):
         results: the entire list of possible results
 
     Returns:
-        the offset and limited results to display for this page
+        the total number of results, the offset, the limit, and the limited results to show
+            for this page
     """
     total = len(results)
     offset = int(handler.get_argument("offset", 0))
