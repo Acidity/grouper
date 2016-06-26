@@ -1,3 +1,5 @@
+import copy
+
 from grouper.fe.forms import SecretForm
 from grouper.fe.util import Alert, GrouperHandler, paginate_results
 from grouper.group import get_groups_by_user
@@ -6,8 +8,13 @@ from grouper.plugin import get_secret_forms
 from grouper.secret import Secret, SecretError, SecretRiskLevel
 
 
-def get_secrets_form(session, user, args={}):
-    form = SecretForm(args)
+def get_secrets_form(session, user, args={}, obj=None):
+    if obj:
+        # Don't want to modify the object we're given
+        obj = copy.copy(obj)
+        # The form expects the owner to be an id, not a Group
+        obj.owner = obj.owner.id
+    form = SecretForm(args, obj=obj)
     form.form.choices = [["", "(select one)"]]
     for f in get_secret_forms():
         form.form.choices.append([f, f])

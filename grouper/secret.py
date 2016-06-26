@@ -84,8 +84,18 @@ class Secret(object):
             SecretError (or subclasses) if something doesn't work
         """
         for plugin in get_plugins():
-            print(plugin)
             plugin.commit_secret(self)
+
+    def delete(self):
+        # type: () -> None
+        """Deletes this secret from the secret management plugins. Continued use of this object
+        after calling delete is undefined.
+
+        Throws:
+            SecretError (or subclasses) if something doesn't work
+        """
+        for plugin in get_plugins():
+            plugin.delete_secret(self)
 
     @staticmethod
     def get_all_secrets():

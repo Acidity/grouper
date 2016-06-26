@@ -84,6 +84,19 @@ class BasePlugin(object):
         """
         pass
 
+    def delete_secret(self, secret):
+        # type: (Secret) -> None
+        """Passes a Secret object to the plugin to be deleted and removed from the secret
+        management sysmte.
+
+        Throws:
+            Any exceptions should be a subclass of SecretError
+
+        Returns:
+            Nothing
+        """
+        pass
+
     def get_secrets(self):
         # type: () -> Dict[str, Secret]
         """Returns a dict of all secrets this plugin manages, keyed by the secret's name. The
