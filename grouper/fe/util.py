@@ -268,3 +268,12 @@ def paginate_results(handler, results):
         limit = 9000
 
     return total, offset, limit, results[offset:offset + limit]
+
+
+def form_http_verbs(function):
+    def inner(self, *args, **kwargs):
+        if "HTTP_VERB" in self.request.arguments:
+            func = getattr(self, self.request.arguments["HTTP_VERB"][0].lower())
+            return func(*args, **kwargs)
+        return function(self, *args, **kwargs)
+    return inner

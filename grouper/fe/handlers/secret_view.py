@@ -1,8 +1,5 @@
-from datetime import timedelta
-
-from grouper.fe.forms import SecretForm
 from grouper.fe.handlers.secrets_view import get_secrets_form, secret_from_form
-from grouper.fe.util import Alert, GrouperHandler
+from grouper.fe.util import Alert, form_http_verbs, GrouperHandler
 from grouper.group import get_groups_by_user
 from grouper.secret import Secret, SecretError, SecretRiskLevel
 
@@ -26,6 +23,7 @@ class SecretView(GrouperHandler):
             "secret.html", secret=secret, is_owner=is_owner, risks=SecretRiskLevel, form=form
         )
 
+    @form_http_verbs
     def post(self, name=None):
         self.handle_refresh()
         secrets = Secret.get_all_secrets()
@@ -99,7 +97,7 @@ class SecretView(GrouperHandler):
             )
             return self.render(
                 "secret.html", form=form, secret=secret, alerts=self.get_form_alerts(form.errors),
-                risks=SecretRiskLevel,
+                risks=SecretRiskLevel, is_owner=is_owner,
             )
 
-        return self.redirect("/secrets", status=303)
+        return self.redirect("/secrets")

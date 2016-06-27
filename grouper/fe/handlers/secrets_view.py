@@ -14,6 +14,8 @@ def get_secrets_form(session, user, args={}, obj=None):
         obj = copy.copy(obj)
         # The form expects the owner to be an id, not a Group
         obj.owner = obj.owner.id
+        # The form expects the distribution to be a single string with newlines
+        obj.distribution = "\r\n".join(obj.distribution)
     form = SecretForm(args, obj=obj)
     form.form.choices = [["", "(select one)"]]
     for f in get_secret_forms():
