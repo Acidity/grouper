@@ -4,26 +4,28 @@ from grouper.plugin import get_plugins, get_secret_forms
 
 
 class SecretError(Exception):
-    """
-    Base exception for all exceptions related to secrets. This should be used
+    """Base exception for all exceptions related to secrets. This should be used
     by plugins when raising secret related exceptions as well.
     """
     pass
 
 
 class InvalidSecretForm(SecretError):
+    """This exception is raised when trying to create a secret with a form that
+    is not supported by any plugin.
+    """
     pass
 
 
 class SecretRiskLevel(Enum):
+    """Risk levels that secrets can have"""
     low = 1
     medium = 2
     high = 3
 
 
 class Secret(object):
-    """
-    This class is the base interface that Grouper uses for all actions involving secrets.
+    """This class is the base interface that Grouper uses for all actions involving secrets.
     All instances where Grouper expects a secret from a plugin MUST return an object that
     implements this entire interface (supersets are of course allowed).
     """
@@ -43,8 +45,7 @@ class Secret(object):
                  new=False        # type: boolean
                  ):
         # type: (...) -> Secret
-        """
-        Creates a new secret object obviously.
+        """Creates a new secret object obviously.
 
         Args:
             name: The name of the secret.
@@ -99,6 +100,12 @@ class Secret(object):
 
     @staticmethod
     def get_all_secrets():
+        # type: () -> Dict[str, Secret]
+        """Returns a dictionary with every secret that is managed.
+
+        Returns:
+            A dictionary keyed by secret names of all secrets
+        """
         ret = dict()
         for plugin in get_plugins():
             ret.update(plugin.get_secrets())

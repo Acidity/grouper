@@ -34,7 +34,12 @@ def get_plugins():
 
 
 def get_secret_forms():
-    """Get a list of all acceptable forms for secrets."""
+    # type: () -> List[str]
+    """Get a list of all acceptable forms for secrets.
+
+    Returns:
+        a copy of the list of all forms supported by loaded plugins
+    """
     global Secret_Forms
     return list(Secret_Forms)
 
