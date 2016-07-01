@@ -8,7 +8,7 @@ class SecretView(GrouperHandler):
 
     def get(self, name=None):
         self.handle_refresh()
-        secrets = Secret.get_all_secrets()
+        secrets = Secret.get_all_secrets(self.session)
         if name not in secrets:
             return self.notfound()
 
@@ -26,7 +26,7 @@ class SecretView(GrouperHandler):
     @form_http_verbs
     def post(self, name=None):
         self.handle_refresh()
-        secrets = Secret.get_all_secrets()
+        secrets = Secret.get_all_secrets(self.session)
         if name not in secrets:
             return self.notfound()
 
@@ -63,7 +63,7 @@ class SecretView(GrouperHandler):
         secret = secret_from_form(self.session, form, new=False)
 
         try:
-            secret.commit()
+            secret.commit(self.session)
         except SecretError as e:
             form.name.errors.append(
                 e.message
@@ -76,7 +76,7 @@ class SecretView(GrouperHandler):
         return self.redirect("/secrets/{}?refresh=yes".format(secret.name))
 
     def delete(self, name=None):
-        secrets = Secret.get_all_secrets()
+        secrets = Secret.get_all_secrets(self.session)
         if name not in secrets:
             return self.notfound()
 
@@ -90,7 +90,7 @@ class SecretView(GrouperHandler):
         form.validate()
 
         try:
-            secret.delete()
+            secret.delete(self.session)
         except SecretError as e:
             form.name.errors.append(
                 e.message

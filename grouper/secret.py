@@ -1,18 +1,14 @@
+import copy
+from datetime import timedelta
 from enum import Enum
 
-from grouper.plugin import get_plugins, get_secret_forms
+from grouper.model_soup import Group
+from grouper.plugin import get_plugins
 
 
 class SecretError(Exception):
     """Base exception for all exceptions related to secrets. This should be used
     by plugins when raising secret related exceptions as well.
-    """
-    pass
-
-
-class InvalidSecretForm(SecretError):
-    """This exception is raised when trying to create a secret with a form that
-    is not supported by any plugin.
     """
     pass
 
@@ -61,8 +57,6 @@ class Secret(object):
             risk_info: Information about why this secret has that level
             uses: Information about where and how this secret is used.
         """
-        if form not in get_secret_forms():
-            raise InvalidSecretForm()
         self.name = name
         self.form = form
         self.form_attr = form_attr
@@ -76,31 +70,68 @@ class Secret(object):
         self.uses = uses
         self.new = new
 
-    def commit(self):
-        # type: () -> None
+    def commit(self, session):
+        # type: (Session) -> None
         """Commits all changes to this object (if any) by passing it to the secret management
         plugins.
 
+        Args:
+            session: database session
+
         Throws:
             SecretError (or subclasses) if something doesn't work
         """
         for plugin in get_plugins():
-            plugin.commit_secret(self)
+            plugin.commit_secret(session, self)
 
-    def delete(self):
-        # type: () -> None
+    def delete(self, session):
+        # type: (Session) -> None
         """Deletes this secret from the secret management plugins. Continued use of this object
         after calling delete is undefined.
 
+        Args:
+            session: database session
+
         Throws:
             SecretError (or subclasses) if something doesn't work
         """
         for plugin in get_plugins():
-            plugin.delete_secret(self)
+            plugin.delete_secret(session, self)
+
+    def to_dict(self):
+        # type: () -> Dict[str, Any]
+        """Converts this secret into a unique JSON-serializable dict.
+
+        Returns:
+            A dict sufficient to reconstruct this Secret.
+        """
+        data = copy.copy(self.__dict__)
+        # Convert the non-JSON serializable types to JSON serializable types
+        data["rotate"] = data["rotate"].days if data["rotate"] is not None else None
+        data["owner"] = data["owner"].id
+        return data
 
     @staticmethod
-    def get_all_secrets():
-        # type: () -> Dict[str, Secret]
+    def from_dict(session, data):
+        # type: (Session, Dict[Str, Any]) -> Secret
+        """Takes the dict representation of a Secret (for instance, from to_dict()) and returns
+        a Secret with those values.
+
+        Args:
+            session: database session
+            data: The dict representation of a Secret
+
+        Returns:
+            A Secret derived from the dictionary
+        """
+        # Convert the JSON serializable types back to native non-JSON serializable types
+        data["owner"] = Group.get(session, data["owner"])
+        data["rotate"] = timedelta(days=data["rotate"]) if data["rotate"] is not None else None
+        return Secret(**data)
+
+    @staticmethod
+    def get_all_secrets(session):
+        # type: (Session) -> Dict[str, Secret]
         """Returns a dictionary with every secret that is managed.
 
         Returns:
@@ -108,5 +139,5 @@ class Secret(object):
         """
         ret = dict()
         for plugin in get_plugins():
-            ret.update(plugin.get_secrets())
+            ret.update(plugin.get_secrets(session))
         return ret

@@ -76,11 +76,15 @@ class BasePlugin(object):
         """
         return []
 
-    def commit_secret(self, secret):
-        # type: (Secret) -> None
+    def commit_secret(self, session, secret):
+        # type: (Session, Secret) -> None
         """Passes a Secret object to the plugin for processing, saving, distribution, and all of
         the other things secret management systems do when creating or updating a secret.
 
+        Args:
+            session: database session
+            secret: the Secret to be committed
+
         Throws:
             Any exceptions should be a subclass of SecretError
 
@@ -89,11 +93,15 @@ class BasePlugin(object):
         """
         pass
 
-    def delete_secret(self, secret):
-        # type: (Secret) -> None
+    def delete_secret(self, session, secret):
+        # type: (Session, Secret) -> None
         """Passes a Secret object to the plugin to be deleted and removed from the secret
         management sysmte.
 
+        Args:
+            session: database session
+            secret: the Secret to be deleted
+
         Throws:
             Any exceptions should be a subclass of SecretError
 
@@ -102,14 +110,17 @@ class BasePlugin(object):
         """
         pass
 
-    def get_secrets(self):
-        # type: () -> Dict[str, Secret]
+    def get_secrets(self, session):
+        # type: (Session) -> Dict[str, Secret]
         """Returns a dict of all secrets this plugin manages, keyed by the secret's name. The
         secrets must not contain any information that should not be exposed to the user, such
         as the value of the secret itself. If the plugin uses 1 or more fields of the Secret
         type (or a subclass) for storing the secret, those fields must be replaced with
         nonsensitive information before this method returns; even if the fields are not part
         of the standard Secret interface.
+
+        Args:
+            session: database session
 
         Throws:
             Any exceptions should be a subclass of SecretError

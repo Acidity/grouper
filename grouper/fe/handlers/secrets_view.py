@@ -53,7 +53,8 @@ class SecretsView(GrouperHandler):
 
     def get(self):
         self.handle_refresh()
-        total, offset, limit, secrets = paginate_results(self, Secret.get_all_secrets().values())
+        all_secrets = Secret.get_all_secrets(self.session).values()
+        total, offset, limit, secrets = paginate_results(self, all_secrets)
 
         form = get_secrets_form(self.session, self.current_user, self.request.arguments)
 
@@ -64,7 +65,7 @@ class SecretsView(GrouperHandler):
 
     def post(self):
         form = get_secrets_form(self.session, self.current_user, self.request.arguments)
-        all_secrets = Secret.get_all_secrets()
+        all_secrets = Secret.get_all_secrets(self.session)
         total, offset, limit, secrets = paginate_results(self, all_secrets.values())
 
         if not form.validate():
@@ -93,7 +94,7 @@ class SecretsView(GrouperHandler):
         secret = secret_from_form(self.session, form, new=True)
 
         try:
-            secret.commit()
+            secret.commit(self.session)
         except SecretError as e:
             form.name.errors.append(
                 e.message
