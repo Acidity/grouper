@@ -1,4 +1,3 @@
-from grouper.fe.handlers.secrets_view import get_secrets_form, secret_from_form
 from grouper.fe.util import Alert, form_http_verbs, GrouperHandler
 from grouper.group import get_groups_by_user
 from grouper.secret import Secret, SecretError, SecretRiskLevel
@@ -17,7 +16,7 @@ class SecretView(GrouperHandler):
         is_owner = secret.owner.name in [group.name for group, group_edge in
             get_groups_by_user(self.session, self.current_user)]
 
-        form = get_secrets_form(self.session, self.current_user, obj=secret)
+        form = secret.get_secrets_form(self.session, self.current_user)
 
         self.render(
             "secret.html", secret=secret, is_owner=is_owner, risks=SecretRiskLevel, form=form
@@ -35,7 +34,7 @@ class SecretView(GrouperHandler):
         is_owner = secret.owner.name in [group.name for group, group_edge in
             get_groups_by_user(self.session, self.current_user)]
 
-        form = get_secrets_form(self.session, self.current_user, self.request.arguments)
+        form = secret.get_secrets_form_args(self.session, self.current_user, self.request.arguments)
 
         if not form.validate():
             return self.render(
@@ -60,7 +59,7 @@ class SecretView(GrouperHandler):
                 is_owner=is_owner, risks=SecretRiskLevel,
             )
 
-        secret = secret_from_form(self.session, form, new=False)
+        secret = secret.secret_from_form(self.session, form, new=False)
 
         try:
             secret.commit(self.session)
@@ -85,7 +84,7 @@ class SecretView(GrouperHandler):
         is_owner = secret.owner.name in [group.name for group, group_edge in
             get_groups_by_user(self.session, self.current_user)]
 
-        form = get_secrets_form(self.session, self.current_user, obj=secret)
+        form = secret.get_secrets_form(self.session, self.current_user)
         # Apparently if we don't validate the form, the errors are tuples, not lists
         form.validate()
 

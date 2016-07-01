@@ -348,12 +348,6 @@ class SecretForm(Form):
         validators.DataRequired(),
         ValidateRegex(constants.NAME_VALIDATION),
     ])
-    form = SelectField("Secret Type", [
-        validators.DataRequired(),
-    ], choices=[["", "(select one)"]], default="")
-    form_attr = StringField("Form Misc", [
-        validators.DataRequired(),
-    ])
     distribution = TextAreaField("Distribution", [
         validators.DataRequired(),
     ])
@@ -372,3 +366,4 @@ class SecretForm(Form):
     ], choices=[[-1, "(select one)"]], default=-1, coerce=int)
     risk_info = TextAreaField("Risk Info")
     uses = TextAreaField("Uses")
+    type = HiddenField(default="Secret")
