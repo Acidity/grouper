@@ -34,11 +34,11 @@ def get_plugins():
 
 
 def get_secret_forms():
-    # type: () -> List[str]
-    """Get a list of all acceptable forms for secrets.
+    # type: () -> List[Secret]
+    """Get a list of all Secret subclasses
 
     Returns:
-        a copy of the list of all forms supported by loaded plugins
+        a copy of the list of all secret subclasses supported by loaded plugins
     """
     global Secret_Forms
     return list(Secret_Forms)
@@ -67,12 +67,12 @@ class BasePlugin(object):
         pass
 
     def get_secret_forms(self):
-        # type: () -> List[str]
+        # type: () -> List[Secret]
         """Called when the plugin is instantiated to determine what secret
-        forms the plugins supports (if any).
+        subclasses the plugins supports (if any).
 
         Returns:
-            a list of the forms that this plugin supports (if any). Empty list otherwise
+            a list of the Secret subclasses that this plugin exposes (if any). Empty list otherwise
         """
         return []
 
