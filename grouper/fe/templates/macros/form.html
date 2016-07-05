@@ -18,6 +18,10 @@
 
              {{ form_field(f[field], 3, 8, class_="form-control") }}
 
+        {% else %}
+
+            {{ f[field]() }}
+
         {% endif %}
 
     {% endfor %}
