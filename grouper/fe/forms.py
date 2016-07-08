@@ -40,6 +40,16 @@ class ValidateDate(object):
                 "{} does not match format 'MM/DD/YYYY'".format(field.data))
 
 
+class ValidateDateISO(object):
+    def __call__(self, form, field):
+        try:
+            if field.data:
+                datetime.strptime(field.data, "%Y-%m-%d")
+        except ValueError:
+            raise ValidationError(
+                "{} does not match format 'YYYY-MM-DD'".format(field.data))
+
+
 class DaysTimeDeltaField(IntegerField):
 
     def process_data(self, value):
@@ -354,12 +364,6 @@ class SecretForm(Form):
     owner = SelectField("Owner", [
         validators.DataRequired(),
     ], choices=[[-1, "(select one)"]], default=-1, coerce=int)
-    rotate = DaysTimeDeltaField("Default Expiration (Days)", [
-        validators.DataRequired()
-    ])
-    history = IntegerField("History", [
-        validators.DataRequired(),
-    ])
     notes = TextAreaField("Notes")
     risk_level = SelectField("Risk Level", [
         validators.DataRequired(),

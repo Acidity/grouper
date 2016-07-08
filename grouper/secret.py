@@ -34,8 +34,6 @@ class Secret(object):
                  name,            # type: str
                  distribution,    # type: List[str]
                  owner,           # type: Group
-                 rotate,          # type: timedelta
-                 history,         # type: int
                  notes,           # type: str
                  risk_level,      # type: int
                  risk_info,       # type: str
@@ -50,8 +48,6 @@ class Secret(object):
             distribution: A list of strings describing how this secret should be distributed. The
                 plugin is responsible for deciding how to interpret this information.
             owner: The group which owns (and is responsible for) this secret.
-            rotate: How long the secret should be valid for before it's rotated.
-            history: The number of copies of the secret to retain.
             notes: Miscellaneous information about the secret.
             risk_level: How bad it would be if this secret was disclosed.
             risk_info: Information about why this secret has that level
@@ -60,8 +56,6 @@ class Secret(object):
         self.name = name
         self.distribution = distribution
         self.owner = owner
-        self.rotate = rotate
-        self.history = history
         self.notes = notes
         self.risk_level = risk_level
         self.risk_info = risk_info
@@ -159,7 +153,7 @@ class Secret(object):
         Returns:
             A SecretForm with fields prefilled by this object's values
         """
-        return self.get_secrets_form_generic(session, user, obj=self)
+        return self._get_secrets_form_generic(session, user, obj=self)
 
     @classmethod
     def get_secrets_form_args(cls, session, user, args):
@@ -179,10 +173,10 @@ class Secret(object):
         Returns:
             A SecretForm with fields prefilled with the values in args
         """
-        return cls.get_secrets_form_generic(session, user, args)
+        return cls._get_secrets_form_generic(session, user, args)
 
     @classmethod
-    def get_secrets_form_generic(cls, session, user, args={}, obj=None):
+    def _get_secrets_form_generic(cls, session, user, args={}, obj=None):
         # type: (Session, User, Dict[str, Any], Secret) -> SecretForm
         """Returns a SecretForm filled out with either args or obj.
 
@@ -232,18 +226,20 @@ class Secret(object):
         Returns:
             A Secret filled out with the data in form
         """
-        return cls(
-            name=form.data["name"],
-            distribution=form.data["distribution"].split("\r\n"),
-            owner=Group.get(session, pk=form.data["owner"]),
-            rotate=form.data["rotate"],
-            history=form.data["history"],
-            notes=form.data["notes"],
-            risk_level=form.data["risk_level"],
-            risk_info=form.data["risk_info"],
-            uses=form.data["uses"],
-            new=new
-        )
+        return cls(**cls.args_from_form(session, form, new))
+
+    @classmethod
+    def args_from_form(cls, session, form, new):
+        return {
+            "name": form.data["name"],
+            "distribution": form.data["distribution"].split("\r\n"),
+            "owner": Group.get(session, pk=form.data["owner"]),
+            "notes": form.data["notes"],
+            "risk_level": form.data["risk_level"],
+            "risk_info": form.data["risk_info"],
+            "uses": form.data["uses"],
+            "new": new,
+        }
 
     def __repr__(self):
         "{}({})".format(self.__name__, self.name)
