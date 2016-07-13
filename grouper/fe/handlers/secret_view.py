@@ -1,7 +1,7 @@
 from grouper.constants import SECRETS_ADMIN
 from grouper.fe.util import Alert, form_http_verbs, GrouperHandler
-from grouper.group import get_groups_by_user
 from grouper.secret import Secret, SecretError, SecretRiskLevel
+from grouper.user_group import get_groups_by_user
 from grouper.user_permissions import user_has_permission
 
 

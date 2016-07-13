@@ -4,9 +4,10 @@ from enum import Enum
 
 from grouper.constants import SECRETS_ADMIN
 from grouper.fe.forms import SecretForm
-from grouper.group import get_all_groups, get_groups_by_user
+from grouper.group import get_all_groups
 from grouper.model_soup import Group
 from grouper.plugin import get_plugins
+from grouper.user_group import get_groups_by_user
 from grouper.user_permissions import user_has_permission
 
 
