@@ -2,10 +2,12 @@ import copy
 from datetime import timedelta
 from enum import Enum
 
+from grouper.constants import SECRETS_ADMIN
 from grouper.fe.forms import SecretForm
-from grouper.group import get_groups_by_user
+from grouper.group import get_all_groups, get_groups_by_user
 from grouper.model_soup import Group
 from grouper.plugin import get_plugins
+from grouper.user_permissions import user_has_permission
 
 
 class SecretError(Exception):
@@ -204,8 +206,18 @@ class Secret(object):
         form = cls.form(args, obj=obj)
 
         form.owner.choices = [[-1, "(select one)"]]
+        user_groups = [group for group, group_edge in get_groups_by_user(session, user)]
+        is_secret_admin = user_has_permission(session, user, SECRETS_ADMIN)
+
+        # For secret admins, put a star next to groups they're in
+        prefix = "* " if is_secret_admin else ""
         for group, group_edge in get_groups_by_user(session, user):
-            form.owner.choices.append([int(group.id), group.name])
+            form.owner.choices.append([int(group.id), prefix + group.name])
+
+        if is_secret_admin:
+            for group in get_all_groups(session):
+                if group not in user_groups:
+                    form.owner.choices.append([int(group.id), group.name])
 
         form.risk_level.choices = [[-1, "(select one)"]]
         for level in SecretRiskLevel:

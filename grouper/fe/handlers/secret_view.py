@@ -1,9 +1,18 @@
+from grouper.constants import SECRETS_ADMIN
 from grouper.fe.util import Alert, form_http_verbs, GrouperHandler
 from grouper.group import get_groups_by_user
 from grouper.secret import Secret, SecretError, SecretRiskLevel
+from grouper.user_permissions import user_has_permission
 
 
 class SecretView(GrouperHandler):
+
+    @staticmethod
+    def check_access(session, secret, actor):
+        is_owner = (secret.owner.name in
+            [group.name for group, group_edge in get_groups_by_user(session, actor)])
+        is_secret_admin = user_has_permission(session, actor, SECRETS_ADMIN)
+        return is_owner or is_secret_admin
 
     def get(self, name=None):
         self.handle_refresh()
@@ -13,13 +22,12 @@ class SecretView(GrouperHandler):
 
         secret = secrets[name]
 
-        is_owner = secret.owner.name in [group.name for group, group_edge in
-            get_groups_by_user(self.session, self.current_user)]
+        can_edit = self.check_access(self.session, secret, self.current_user)
 
         form = secret.get_secrets_form(self.session, self.current_user)
 
         self.render(
-            "secret.html", secret=secret, is_owner=is_owner, risks=SecretRiskLevel, form=form
+            "secret.html", secret=secret, can_edit=can_edit, risks=SecretRiskLevel, form=form
         )
 
     @form_http_verbs
@@ -31,15 +39,16 @@ class SecretView(GrouperHandler):
 
         secret = secrets[name]
 
-        is_owner = secret.owner.name in [group.name for group, group_edge in
-            get_groups_by_user(self.session, self.current_user)]
+        can_edit = self.check_access(self.session, secret, self.current_user)
+        if not can_edit:
+            return self.forbidden()
 
         form = secret.get_secrets_form_args(self.session, self.current_user, self.request.arguments)
 
         if not form.validate():
             return self.render(
                 "secret.html", form=form, secret=secret, alerts=self.get_form_alerts(form.errors),
-                is_owner=is_owner, risks=SecretRiskLevel,
+                can_edit=can_edit, risks=SecretRiskLevel,
             )
 
         if form.data["name"] != name:
@@ -47,7 +56,7 @@ class SecretView(GrouperHandler):
             form.name.errors.append(msg)
             return self.render(
                 "secret.html", form=form, secret=secret, alerts=[Alert("danger", msg)],
-                is_owner=is_owner, risks=SecretRiskLevel,
+                can_edit=can_edit, risks=SecretRiskLevel,
             )
 
         try:
@@ -56,7 +65,7 @@ class SecretView(GrouperHandler):
             form.risk_level.errors.append(e.message)
             return self.render(
                 "secret.html", form=form, secret=secret, alerts=[Alert("danger", e.message)],
-                is_owner=is_owner, risks=SecretRiskLevel,
+                can_edit=can_edit, risks=SecretRiskLevel,
             )
 
         secret = secret.secret_from_form(self.session, form, new=False)
@@ -69,7 +78,7 @@ class SecretView(GrouperHandler):
             )
             return self.render(
                 "secret.html", form=form, secret=secret, alerts=self.get_form_alerts(form.errors),
-                risks=SecretRiskLevel,
+                risks=SecretRiskLevel, can_edit=can_edit,
             )
 
         return self.redirect("/secrets/{}?refresh=yes".format(secret.name))
@@ -81,8 +90,9 @@ class SecretView(GrouperHandler):
 
         secret = secrets[name]
 
-        is_owner = secret.owner.name in [group.name for group, group_edge in
-            get_groups_by_user(self.session, self.current_user)]
+        can_edit = self.check_access(self.session, secret, self.current_user)
+        if not can_edit:
+            return self.forbidden()
 
         form = secret.get_secrets_form(self.session, self.current_user)
         # Apparently if we don't validate the form, the errors are tuples, not lists
@@ -96,7 +106,7 @@ class SecretView(GrouperHandler):
             )
             return self.render(
                 "secret.html", form=form, secret=secret, alerts=self.get_form_alerts(form.errors),
-                risks=SecretRiskLevel, is_owner=is_owner,
+                risks=SecretRiskLevel, can_edit=can_edit,
             )
 
         return self.redirect("/secrets")

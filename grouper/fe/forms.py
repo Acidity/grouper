@@ -354,7 +354,7 @@ class ServiceAccountCreateForm(Form):
 
 class SecretForm(Form):
     name = StringField("Name", [
-        validators.Length(min=3, max=32),
+        validators.Length(min=3, max=constants.MAX_NAME_LENGTH),
         validators.DataRequired(),
         ValidateRegex(constants.NAME_VALIDATION),
     ])
