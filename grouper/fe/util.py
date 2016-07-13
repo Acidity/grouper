@@ -3,6 +3,7 @@ from functools import wraps
 import logging
 import re
 import sys
+from typing import TypeVar
 import urllib
 from uuid import uuid4
 
@@ -40,6 +41,9 @@ class InvalidUser(Exception):
     pass
 
 
+T = TypeVar('T')  # noqa
+
+
 # if raven library around, pull in SentryMixin
 try:
     from raven.contrib.tornado import SentryMixin
@@ -48,7 +52,7 @@ except ImportError:
 else:
     class SentryHandler(SentryMixin, RequestHandler):
         pass
-    RequestHandler = SentryHandler
+    RequestHandler = SentryHandler  # type: ignore # no support for conditional declarations #1152
 
 
 class GrouperHandler(RequestHandler):
@@ -250,7 +254,7 @@ def ensure_audit_security(perm_arg):
 
 
 def paginate_results(handler, results):
-    # type: (GrouperHandler, List[T]) -> Tuple[int, int, int, List[T]]
+    # type: (GrouperHandler, List[T]) -> tuple[int, int, int, List[T]]
     """Limits the number of results to display for handlers/templates the paginate lists
 
     Args:

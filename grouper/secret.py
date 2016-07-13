@@ -1,12 +1,14 @@
 import copy
 from datetime import timedelta
 from enum import Enum
+from sqlalchemy.orm import Session  # noqa
+from typing import Any  # noqa
 
 from grouper.constants import SECRETS_ADMIN
 from grouper.fe.forms import SecretForm
 from grouper.group import get_all_groups
 from grouper.model_soup import Group
-from grouper.plugin import get_plugins
+from grouper.models.user import User  # noqa
 from grouper.user_group import get_groups_by_user
 from grouper.user_permissions import user_has_permission
 
@@ -43,7 +45,7 @@ class Secret(object):
                  uses,            # type: str
                  new=False        # type: boolean
                  ):
-        # type: (...) -> Secret
+        # type: (...) -> None
         """Creates a new secret object obviously.
 
         Args:
@@ -65,34 +67,6 @@ class Secret(object):
         self.uses = uses
         self.new = new
 
-    def commit(self, session):
-        # type: (Session) -> None
-        """Commits all changes to this object (if any) by passing it to the secret management
-        plugins.
-
-        Args:
-            session: database session
-
-        Throws:
-            SecretError (or subclasses) if something doesn't work
-        """
-        for plugin in get_plugins():
-            plugin.commit_secret(session, self)
-
-    def delete(self, session):
-        # type: (Session) -> None
-        """Deletes this secret from the secret management plugins. Continued use of this object
-        after calling delete is undefined.
-
-        Args:
-            session: database session
-
-        Throws:
-            SecretError (or subclasses) if something doesn't work
-        """
-        for plugin in get_plugins():
-            plugin.delete_secret(session, self)
-
     def to_dict(self):
         # type: () -> Dict[str, Any]
         """Converts this secret into a unique JSON-serializable dict.
@@ -100,7 +74,7 @@ class Secret(object):
         Returns:
             A dict sufficient to reconstruct this Secret.
         """
-        data = copy.copy(self.__dict__)
+        data = copy.copy(self.__dict__)  # type: ignore: Silly mypy, all objects have __dict__
         # Convert the non-JSON serializable types to JSON serializable types
         data["rotate"] = data["rotate"].days if data["rotate"] is not None else None
         data["owner"] = data["owner"].name
@@ -108,7 +82,7 @@ class Secret(object):
 
     @staticmethod
     def from_dict(session, data):
-        # type: (Session, Dict[Str, Any]) -> Secret
+        # type: (Session, Dict[str, Any]) -> Secret
         """Takes the dict representation of a Secret (for instance, from to_dict()) and returns
         a Secret with those values.
 
@@ -126,19 +100,6 @@ class Secret(object):
         data["owner"] = tmp
         data["rotate"] = timedelta(days=data["rotate"]) if data["rotate"] is not None else None
         return Secret(**data)
-
-    @staticmethod
-    def get_all_secrets(session):
-        # type: (Session) -> Dict[str, Secret]
-        """Returns a dictionary with every secret that is managed.
-
-        Returns:
-            A dictionary keyed by secret names of all secrets
-        """
-        ret = dict()
-        for plugin in get_plugins():
-            ret.update(plugin.get_secrets(session))
-        return ret
 
     def get_secrets_form(self, session, user):
         # type: (Session, User) -> SecretForm
@@ -221,7 +182,7 @@ class Secret(object):
                     form.owner.choices.append([int(group.id), group.name])
 
         form.risk_level.choices = [[-1, "(select one)"]]
-        for level in SecretRiskLevel:
+        for level in SecretRiskLevel:  # type: ignore: iterating through enums is well defined
             form.risk_level.choices.append([level.value, level.name])
 
         return form

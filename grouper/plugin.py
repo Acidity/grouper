@@ -5,10 +5,12 @@ Base plugin for Grouper plugins. These are plugins that can be written to extend
 functionality.
 """
 from annex import Annex
+from sqlalchemy.orm import Session  # noqa
 
+from grouper.secret import Secret  # noqa
 
-Plugins = []
-Secret_Forms = []
+Plugins = []  # type: List[BasePlugin]
+Secret_Forms = []  # type: List[Secret]
 
 
 class PluginsAlreadyLoaded(Exception):

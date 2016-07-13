@@ -1,13 +1,14 @@
 from grouper.fe.util import Alert, GrouperHandler, paginate_results
 from grouper.plugin import get_secret_forms
 from grouper.secret import Secret, SecretError, SecretRiskLevel
+from grouper.secrets_view import commit_secret, get_all_secrets
 
 
 class SecretsView(GrouperHandler):
 
     def get(self):
         self.handle_refresh()
-        all_secrets = Secret.get_all_secrets(self.session).values()
+        all_secrets = get_all_secrets(self.session).values()
         total, offset, limit, secrets = paginate_results(self, all_secrets)
 
         forms = [sec.get_secrets_form_args(self.session, self.current_user, self.request.arguments)
@@ -26,7 +27,7 @@ class SecretsView(GrouperHandler):
         forms = [sec.get_secrets_form_args(self.session, self.current_user, self.request.arguments)
             for sec in get_secret_forms()]
         forms = [form if type(form) == type(f) else f for f in forms]
-        all_secrets = Secret.get_all_secrets(self.session)
+        all_secrets = get_all_secrets(self.session)
         total, offset, limit, secrets = paginate_results(self, all_secrets.values())
 
         if not form.validate():
@@ -55,7 +56,7 @@ class SecretsView(GrouperHandler):
         secret = secret_type.secret_from_form(self.session, form, new=True)
 
         try:
-            secret.commit(self.session)
+            commit_secret(self.session, secret)
         except SecretError as e:
             form.name.errors.append(
                 e.message
