@@ -1,6 +1,6 @@
 from grouper.fe.util import Alert, GrouperHandler, paginate_results
 from grouper.plugin import get_secret_forms
-from grouper.secret import Secret, SecretError, SecretRiskLevel
+from grouper.secret import SecretError, SecretRiskLevel
 from grouper.secret_plugin import commit_secret, get_all_secrets
 
 

@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session  # noqa
 
 from grouper.plugin import get_plugins
 from grouper.secret import Secret  # noqa
