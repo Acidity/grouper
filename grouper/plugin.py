@@ -7,11 +7,10 @@ functionality.
 from annex import Annex
 from sqlalchemy.orm import Session  # noqa
 
-from grouper.secret import Secret  # noqa
-
+import grouper  # noqa
 
 Plugins = []  # type: List[BasePlugin]
-Secret_Forms = []  # type: List[Secret]
+Secret_Forms = []  # type: List[grouper.secret.Secret]
 
 
 class PluginsAlreadyLoaded(Exception):
@@ -37,7 +36,7 @@ def get_plugins():
 
 
 def get_secret_forms():
-    # type: () -> List[Secret]
+    # type: () -> List[grouper.secret.Secret]
     """Get a list of all Secret subclasses
 
     Returns:
@@ -70,7 +69,7 @@ class BasePlugin(object):
         pass
 
     def get_secret_forms(self):
-        # type: () -> List[Secret]
+        # type: () -> List[grouper.secret.Secret]
         """Called when the plugin is instantiated to determine what secret
         subclasses the plugins supports (if any).
 
@@ -80,7 +79,7 @@ class BasePlugin(object):
         return []
 
     def commit_secret(self, session, secret):
-        # type: (Session, Secret) -> None
+        # type: (Session, grouper.secret.Secret) -> None
         """Passes a Secret object to the plugin for processing, saving, distribution, and all of
         the other things secret management systems do when creating or updating a secret.
 
@@ -97,7 +96,7 @@ class BasePlugin(object):
         pass
 
     def delete_secret(self, session, secret):
-        # type: (Session, Secret) -> None
+        # type: (Session, grouper.secret.Secret) -> None
         """Passes a Secret object to the plugin to be deleted and removed from the secret
         management sysmte.
 
@@ -114,7 +113,7 @@ class BasePlugin(object):
         pass
 
     def get_secrets(self, session):
-        # type: (Session) -> Dict[str, Secret]
+        # type: (Session) -> Dict[str, grouper.secret.Secret]
         """Returns a dict of all secrets this plugin manages, keyed by the secret's name. The
         secrets must not contain any information that should not be exposed to the user, such
         as the value of the secret itself. If the plugin uses 1 or more fields of the Secret
