@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session  # noqa
 
 from grouper.secret import Secret  # noqa
 
+
 Plugins = []  # type: List[BasePlugin]
 Secret_Forms = []  # type: List[Secret]
 
